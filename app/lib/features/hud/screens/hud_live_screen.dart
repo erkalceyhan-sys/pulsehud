@@ -3,10 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/services/system_monitor_service.dart';
 import '../../../core/services/wallpaper_service.dart';
 import '../models/hud_theme_config.dart';
-import '../painters/cyberpunk_painter.dart';
 import '../painters/obsidian_painter.dart';
-import '../painters/matrix_painter.dart';
-import '../painters/reactor_painter.dart';
 import '../../themes/screens/theme_picker_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 
@@ -19,14 +16,14 @@ class HudLiveScreen extends StatefulWidget {
 
 class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animController;
-  HudThemeConfig _currentTheme = HudThemeConfig.availableThemes.first;
+  HudThemeConfig _currentTheme = HudThemeConfig.availableThemes[1]; // Default: Apple Obsidian Minimalist
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 3),
     )..repeat();
   }
 
@@ -36,197 +33,282 @@ class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  Widget _buildPainter(HudThemeConfig theme, dynamic metrics) {
-    switch (theme.type) {
-      case HudThemeType.cyberpunkNeon:
-        return CustomPaint(
-          painter: CyberpunkPainter(metrics: metrics, animationValue: _animController.value),
-          size: Size.infinite,
-        );
-      case HudThemeType.obsidianMinimalist:
-        return CustomPaint(
-          painter: ObsidianPainter(metrics: metrics, animationValue: _animController.value),
-          size: Size.infinite,
-        );
-      case HudThemeType.matrixTerminal:
-        return CustomPaint(
-          painter: MatrixPainter(metrics: metrics, animationValue: _animController.value),
-          size: Size.infinite,
-        );
-      case HudThemeType.sciFiReactor:
-        return CustomPaint(
-          painter: ReactorPainter(metrics: metrics, animationValue: _animController.value),
-          size: Size.infinite,
-        );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final monitor = Provider.of<SystemMonitorService>(context);
     final m = monitor.metrics;
 
     return Scaffold(
-      backgroundColor: _currentTheme.backgroundColor,
-      body: AnimatedBuilder(
-        animation: _animController,
-        builder: (context, child) {
-          return Stack(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Live Canvas HUD Animation
-              Positioned.fill(
-                child: _buildPainter(_currentTheme, m),
-              ),
-
-              // 2. Top Header Telemetry
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Column(
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Text(
+                        'HARDWARE',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Live Pulse',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.palette_outlined, color: Colors.white70),
+                        onPressed: () async {
+                          final selected = await Navigator.push<HudThemeConfig>(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ThemePickerScreen()),
+                          );
+                          if (selected != null) {
+                            setState(() => _currentTheme = selected);
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.settings_outlined, color: Colors.white70),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Central Apple Activity Rings
+              Center(
+                child: SizedBox(
+                  width: 240,
+                  height: 240,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      AnimatedBuilder(
+                        animation: _animController,
+                        builder: (context, _) {
+                          return CustomPaint(
+                            size: const Size(240, 240),
+                            painter: ObsidianPainter(
+                              metrics: m,
+                              animationValue: _animController.value,
+                            ),
+                          );
+                        },
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'PULSE // HUD',
-                                style: TextStyle(
-                                  color: _currentTheme.primaryAccent,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              Text(
-                                '${_currentTheme.title.toUpperCase()} MODE',
-                                style: TextStyle(
-                                  color: _currentTheme.secondaryAccent,
-                                  fontSize: 10,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            m.cpuFrequencyGhz.toStringAsFixed(2),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -1.0,
+                            ),
                           ),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.palette_outlined, color: _currentTheme.primaryAccent),
-                                onPressed: () async {
-                                  final selected = await Navigator.push<HudThemeConfig>(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const ThemePickerScreen()),
-                                  );
-                                  if (selected != null) {
-                                    setState(() => _currentTheme = selected);
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.settings_outlined, color: _currentTheme.primaryAccent),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                                  );
-                                },
-                              ),
-                            ],
+                          const Text(
+                            'GHz',
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'CPU FREQ',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-
-                      // Metrics Cards
-                      _buildMetricRow('CPU LOAD', '${m.cpuUsage}%', '${m.cpuFrequencyGhz.toStringAsFixed(2)} GHz', _currentTheme.primaryAccent),
-                      const SizedBox(height: 8),
-                      _buildMetricRow('RAM USED', '${m.ramUsagePercent.toStringAsFixed(1)}%', '${m.ramUsedGb} / ${m.ramTotalGb} GB', _currentTheme.secondaryAccent),
-                      const SizedBox(height: 8),
-                      _buildMetricRow('NETWORK', '${m.downloadSpeedMbps} MB/s', 'PING ${m.pingMs}ms', const Color(0xFF00FF9D)),
-                      const SizedBox(height: 8),
-                      _buildMetricRow('BATTERY', '${m.batteryLevel}%', '${m.batteryTemperatureC}°C', const Color(0xFFFFE600)),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 28),
 
-              // 3. Bottom Action Bar (Apply to Wallpaper)
-              Positioned(
-                bottom: 30,
-                left: 20,
-                right: 20,
-                child: SafeArea(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _currentTheme.primaryAccent,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 8,
+              // 2x2 Apple Style Cards Grid
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAppleCard(
+                      label: 'CPU USAGE',
+                      value: '${m.cpuUsage.toStringAsFixed(0)}%',
+                      sub: '8 Cores • 60 FPS',
+                      indicatorColor: const Color(0xFFFF453A),
                     ),
-                    onPressed: () async {
-                      final success = await WallpaperService.setLiveWallpaper();
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            success
-                                ? 'Wallpaper applied successfully!'
-                                : 'Applying live wallpaper to system background...',
-                          ),
-                          backgroundColor: _currentTheme.cardColorDark(),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildAppleCard(
+                      label: 'MEMORY',
+                      value: '${m.ramUsedGb.toStringAsFixed(1)} GB',
+                      sub: '${m.ramUsagePercent.toStringAsFixed(0)}% of 8.0 GB',
+                      indicatorColor: const Color(0xFF30D158),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAppleCard(
+                      label: 'NETWORK',
+                      value: '${m.downloadSpeedMbps.toStringAsFixed(0)} MB/s',
+                      sub: 'Ping ${m.pingMs}ms • 5G',
+                      indicatorColor: const Color(0xFF0A84FF),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildAppleCard(
+                      label: 'THERMALS',
+                      value: '${m.batteryTemperatureC}°C',
+                      sub: 'Battery ${m.batteryLevel}% • Normal',
+                      indicatorColor: const Color(0xFFFFD60A),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Solid Apple White Action Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () async {
+                    final success = await WallpaperService.setLiveWallpaper();
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          success
+                              ? 'Wallpaper configured successfully!'
+                              : 'Applying live hardware wallpaper...',
                         ),
-                      );
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.wallpaper, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'SET AS LIVE WALLPAPER',
-                          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
-                        ),
-                      ],
+                        backgroundColor: const Color(0xFF1C1C1E),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Set as Wallpaper',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
                     ),
                   ),
                 ),
               ),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildMetricRow(String label, String value, String sub, Color accent) {
+  Widget _buildAppleCard({
+    required String label,
+    required String value,
+    required String sub,
+    required Color indicatorColor,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF101726).withOpacity(0.6),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: accent.withOpacity(0.3), width: 1),
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF2C2C2E), width: 1),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11, letterSpacing: 1.2)),
           Row(
             children: [
-              Text(value, style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.bold)),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: indicatorColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
               const SizedBox(width: 8),
-              Text('($sub)', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.0,
+                ),
+              ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            sub,
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 12,
+            ),
           ),
         ],
       ),
     );
   }
-}
-
-extension ThemeColorExt on HudThemeConfig {
-  Color cardColorDark() => const Color(0xFF141E33);
 }
