@@ -45,6 +45,8 @@ platform :ios do
     sh("flutter config --no-enable-swift-package-manager")
     sh("flutter build ios --release --no-codesign --build-number=#{build_num}", chdir: "..")
 
+    profile_name = ENV['sigh_com.erkalceyhan.pulsehud_appstore_profile-name'] || "match AppStore com.erkalceyhan.pulsehud"
+
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "Runner.xcodeproj",
@@ -53,7 +55,7 @@ platform :ios do
       team_id: "BMTB5FH8US",
       bundle_identifier: "com.erkalceyhan.pulsehud",
       code_sign_identity: "Apple Distribution",
-      profile_name: "match AppStore com.erkalceyhan.pulsehud",
+      profile_name: profile_name,
       sdk: "iphoneos*"
     )
 
@@ -66,7 +68,7 @@ platform :ios do
         teamID: "BMTB5FH8US",
         signingStyle: "manual",
         provisioningProfiles: {
-          "com.erkalceyhan.pulsehud" => "match AppStore com.erkalceyhan.pulsehud"
+          "com.erkalceyhan.pulsehud" => profile_name
         }
       }
     )
