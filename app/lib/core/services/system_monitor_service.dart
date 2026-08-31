@@ -26,9 +26,10 @@ class SystemMonitorService extends ChangeNotifier {
     pingMs: 0,
     batteryLevel: 100,
     isCharging: false,
-    batteryTemperatureC: 30.0,
+    thermalState: 'Nominal • Cool',
     storageUsedPercent: 50.0,
     storageFreeGb: 50.0,
+    storageTotalGb: 128.0,
     currentFps: 60,
     isOffline: false,
     connectionType: '5G',
@@ -62,7 +63,7 @@ class SystemMonitorService extends ChangeNotifier {
       _connectionType = 'Wi-Fi';
     } else if (results.contains(ConnectivityResult.mobile)) {
       _isOffline = false;
-      _connectionType = '5G / Cellular';
+      _connectionType = 'Cellular';
     } else if (results.contains(ConnectivityResult.ethernet)) {
       _isOffline = false;
       _connectionType = 'Ethernet';
@@ -84,8 +85,11 @@ class SystemMonitorService extends ChangeNotifier {
     double realRamUsed = _metrics.ramUsedGb;
     double realRamTotal = _metrics.ramTotalGb;
     double realStorageFree = _metrics.storageFreeGb;
+    double realStorageTotal = _metrics.storageTotalGb;
     int realBattery = _metrics.batteryLevel;
     bool realCharging = _metrics.isCharging;
+    String realThermal = _metrics.thermalState;
+    double realNetworkMbps = 0.0;
 
     try {
       final res =
@@ -103,20 +107,28 @@ class SystemMonitorService extends ChangeNotifier {
         if (res['storageFreeGb'] != null) {
           realStorageFree = (res['storageFreeGb'] as num).toDouble();
         }
+        if (res['storageTotalGb'] != null) {
+          realStorageTotal = (res['storageTotalGb'] as num).toDouble();
+        }
         if (res['batteryLevel'] != null) {
           realBattery = (res['batteryLevel'] as num).toInt();
         }
         if (res['isCharging'] != null) {
           realCharging = res['isCharging'] as bool;
         }
+        if (res['thermalState'] != null) {
+          realThermal = res['thermalState'] as String;
+        }
+        if (res['networkMbps'] != null && !_isOffline) {
+          realNetworkMbps = (res['networkMbps'] as num).toDouble();
+        }
       }
-    } catch (_) {
-      // Fallback if not on iOS native runtime
-    }
+    } catch (_) {}
 
     double storageUsedPct = 50.0;
-    if (realRamTotal > 0) {
-      storageUsedPct = ((realRamTotal - realRamUsed) / realRamTotal) * 100.0;
+    if (realStorageTotal > 0) {
+      storageUsedPct =
+          ((realStorageTotal - realStorageFree) / realStorageTotal) * 100.0;
     }
 
     _metrics = HudMetrics(
@@ -124,14 +136,16 @@ class SystemMonitorService extends ChangeNotifier {
       cpuFrequencyGhz: 2.2 + (realCpu / 100.0) * 1.0,
       ramUsedGb: double.parse(realRamUsed.toStringAsFixed(2)),
       ramTotalGb: double.parse(realRamTotal.toStringAsFixed(1)),
-      downloadSpeedMbps: _isOffline ? 0.0 : 0.0,
-      uploadSpeedMbps: _isOffline ? 0.0 : 0.0,
+      downloadSpeedMbps:
+          _isOffline ? 0.0 : double.parse(realNetworkMbps.toStringAsFixed(2)),
+      uploadSpeedMbps: 0.0,
       pingMs: _isOffline ? 0 : 12,
       batteryLevel: realBattery,
       isCharging: realCharging,
-      batteryTemperatureC: 30.0 + (realCpu / 100.0) * 3.0,
+      thermalState: realThermal,
       storageUsedPercent: double.parse(storageUsedPct.toStringAsFixed(1)),
       storageFreeGb: double.parse(realStorageFree.toStringAsFixed(1)),
+      storageTotalGb: double.parse(realStorageTotal.toStringAsFixed(1)),
       currentFps: 60,
       isOffline: _isOffline,
       connectionType: _connectionType,

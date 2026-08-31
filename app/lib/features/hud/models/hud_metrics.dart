@@ -8,9 +8,10 @@ class HudMetrics {
   final int pingMs;
   final int batteryLevel; // 0 to 100
   final bool isCharging;
-  final double batteryTemperatureC;
+  final String thermalState;
   final double storageUsedPercent;
   final double storageFreeGb;
+  final double storageTotalGb;
   final int currentFps;
   final bool isOffline;
   final String connectionType;
@@ -25,13 +26,15 @@ class HudMetrics {
     required this.pingMs,
     required this.batteryLevel,
     this.isCharging = false,
-    required this.batteryTemperatureC,
+    this.thermalState = 'Nominal • Cool',
     required this.storageUsedPercent,
-    this.storageFreeGb = 45.8,
+    this.storageFreeGb = 50.0,
+    this.storageTotalGb = 128.0,
     required this.currentFps,
     this.isOffline = false,
     this.connectionType = '5G',
   });
 
-  double get ramUsagePercent => (ramUsedGb / ramTotalGb) * 100.0;
+  double get ramUsagePercent =>
+      ramTotalGb > 0 ? (ramUsedGb / ramTotalGb) * 100.0 : 0.0;
 }

@@ -11,72 +11,46 @@ class CyberpunkPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final cyanPaint = Paint()
-      ..color = const Color(0xFF00F0FF)
+    final maxRadius = min(size.width, size.height) / 2;
+
+    // Glowing Outer Ring
+    final ringPaint = Paint()
+      ..color = const Color(0xFFFF0055).withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = (maxRadius * 0.04).clamp(1.5, 4.0);
+    canvas.drawCircle(center, maxRadius * 0.9, ringPaint);
 
-    final magentaPaint = Paint()
-      ..color = const Color(0xFFFF007A)
+    // Dynamic Arc based on CPU
+    final cpuArcPaint = Paint()
+      ..color = const Color(0xFFFF0055)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = (maxRadius * 0.08).clamp(3.0, 8.0)
+      ..strokeCap = StrokeCap.round;
 
-    // Grid Background
-    final gridPaint = Paint()
-      ..color = const Color(0xFF142442).withValues(alpha: 0.3)
-      ..strokeWidth = 1.0;
-
-    for (double x = 0; x < size.width; x += 40) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-    for (double y = 0; y < size.height; y += 40) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    // Outer Target Rings
-    canvas.drawCircle(center, 140, cyanPaint..strokeWidth = 1.5);
-    canvas.drawCircle(center, 120, magentaPaint..strokeWidth = 1.0);
-
-    // Rotating Arcs
-    final arcRect = Rect.fromCircle(center: center, radius: 130);
-    canvas.drawArc(arcRect, animationValue * 2 * pi, pi / 2, false,
-        cyanPaint..strokeWidth = 4.0);
-    canvas.drawArc(arcRect, -animationValue * 2 * pi + pi, pi / 3, false,
-        magentaPaint..strokeWidth = 4.0);
-
-    // Central CPU Load Arc
-    final cpuAngle = (metrics.cpuUsage / 100.0) * 2 * pi;
-    final cpuRect = Rect.fromCircle(center: center, radius: 90);
+    double sweepAngle = (metrics.cpuUsage / 100.0) * 2 * pi;
     canvas.drawArc(
-        cpuRect,
-        -pi / 2,
-        cpuAngle,
-        false,
-        Paint()
-          ..color = const Color(0xFF00FF9D)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 8.0
-          ..strokeCap = StrokeCap.round);
+      Rect.fromCircle(center: center, radius: maxRadius * 0.9),
+      -pi / 2,
+      sweepAngle,
+      false,
+      cpuArcPaint,
+    );
 
-    // Dynamic Waveform across center
-    final wavePaint = Paint()
-      ..color = const Color(0xFF00F0FF)
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke;
+    // RAM Arc
+    final ramArcPaint = Paint()
+      ..color = const Color(0xFF00FFCC)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (maxRadius * 0.08).clamp(3.0, 8.0)
+      ..strokeCap = StrokeCap.round;
 
-    final path = Path();
-    for (double x = 20; x < size.width - 20; x += 5) {
-      double relX = (x - size.width / 2) / 60;
-      double y = center.dy +
-          180 +
-          sin(relX * 4 + animationValue * 2 * pi) * (metrics.cpuUsage * 0.3);
-      if (x == 20) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    canvas.drawPath(path, wavePaint);
+    double ramSweep = (metrics.ramUsagePercent / 100.0) * 2 * pi;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: maxRadius * 0.75),
+      -pi / 2,
+      ramSweep,
+      false,
+      ramArcPaint,
+    );
   }
 
   @override

@@ -6,6 +6,8 @@ import SystemConfiguration
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var prevCpuInfo: host_cpu_load_info?
+  private var prevNetworkBytes: UInt64 = 0
+  private var prevNetworkTime: TimeInterval = 0
 
   override func application(
     _ application: UIApplication,
@@ -36,10 +38,10 @@ import SystemConfiguration
   }
 
   private func collectRealSystemMetrics() -> [String: Any] {
-    // 1. Real Mach CPU Load
+    // 1. Real Mach Kernel CPU Load
     let cpuUsage = getRealCpuUsage()
 
-    // 2. Real Mach RAM Load
+    // 2. Real Mach Kernel RAM Load
     let (ramUsedGb, ramTotalGb) = getRealMemoryUsage()
 
     // 3. Real Disk Storage
@@ -49,7 +51,13 @@ import SystemConfiguration
     let batteryLevel = Int(max(0, UIDevice.current.batteryLevel * 100))
     let isCharging = UIDevice.current.batteryState == .charging || UIDevice.current.batteryState == .full
 
-    // 5. Hardware Info
+    // 5. Real iOS Thermal State
+    let thermalState = getRealThermalState()
+
+    // 6. Real Network Throughput (Delta of if_data bytes)
+    let (networkMbps, networkKbps) = getRealNetworkThroughput()
+
+    // 7. Hardware Info
     let coreCount = ProcessInfo.processInfo.activeProcessorCount
 
     return [
@@ -60,7 +68,10 @@ import SystemConfiguration
       "storageFreeGb": storageFreeGb,
       "storageTotalGb": storageTotalGb,
       "batteryLevel": batteryLevel >= 0 ? batteryLevel : 100,
-      "isCharging": isCharging
+      "isCharging": isCharging,
+      "thermalState": thermalState,
+      "networkMbps": networkMbps,
+      "networkKbps": networkKbps
     ]
   }
 
@@ -133,5 +144,60 @@ import SystemConfiguration
     } catch {
       return (0.0, 0.0)
     }
+  }
+
+  private func getRealThermalState() -> String {
+    switch ProcessInfo.processInfo.thermalState {
+    case .nominal:
+      return "Nominal • Cool"
+    case .fair:
+      return "Fair • Warm"
+    case .serious:
+      return "Serious • Hot"
+    case .critical:
+      return "Critical • Throttling"
+    @unknown default:
+      return "Nominal • Cool"
+    }
+  }
+
+  private func getRealNetworkThroughput() -> (Double, Double) {
+    var ifaddr: UnsafeMutablePointer<ifaddrs>?
+    guard getifaddrs(&ifaddr) == 0 else { return (0.0, 0.0) }
+    defer { freeifaddrs(ifaddr) }
+
+    var totalBytes: UInt64 = 0
+    var ptr = ifaddr
+    while ptr != nil {
+      let flags = Int32(ptr!.pointee.ifa_flags)
+      let addr = ptr!.pointee.ifa_addr.pointee
+      if (flags & (IFF_UP|IFF_RUNNING)) == (IFF_UP|IFF_RUNNING) && addr.sa_family == UInt8(AF_LINK) {
+        let name = String(cString: ptr!.pointee.ifa_name)
+        if name.hasPrefix("en") || name.hasPrefix("pdp_ip") {
+          let data = unsafeBitCast(ptr!.pointee.ifa_data, to: UnsafeMutablePointer<if_data>.self)
+          totalBytes += UInt64(data.pointee.ifi_ibytes) + UInt64(data.pointee.ifi_obytes)
+        }
+      }
+      ptr = ptr!.pointee.ifa_next
+    }
+
+    let now = Date().timeIntervalSince1970
+    if prevNetworkTime == 0 || prevNetworkBytes == 0 {
+      prevNetworkBytes = totalBytes
+      prevNetworkTime = now
+      return (0.0, 0.0)
+    }
+
+    let timeDelta = now - prevNetworkTime
+    let byteDelta = totalBytes >= prevNetworkBytes ? (totalBytes - prevNetworkBytes) : 0
+    prevNetworkBytes = totalBytes
+    prevNetworkTime = now
+
+    if timeDelta <= 0 { return (0.0, 0.0) }
+    let speedBytesPerSec = Double(byteDelta) / timeDelta
+    let speedMbps = (speedBytesPerSec * 8.0) / (1024.0 * 1024.0)
+    let speedKbps = speedBytesPerSec / 1024.0
+
+    return (speedMbps, speedKbps)
   }
 }

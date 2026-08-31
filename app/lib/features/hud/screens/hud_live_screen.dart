@@ -142,9 +142,9 @@ class _HudLiveScreenState extends State<HudLiveScreen>
                 ),
                 child: Row(
                   children: [
-                    _buildSizeTab('Small (2×2)', WidgetPreviewSize.small),
-                    _buildSizeTab('Medium (4×2)', WidgetPreviewSize.medium),
-                    _buildSizeTab('Large (4×4)', WidgetPreviewSize.large),
+                    _buildSizeTab('Small', WidgetPreviewSize.small),
+                    _buildSizeTab('Medium', WidgetPreviewSize.medium),
+                    _buildSizeTab('Large', WidgetPreviewSize.large),
                   ],
                 ),
               ),
@@ -216,11 +216,11 @@ class _HudLiveScreenState extends State<HudLiveScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildTelemetryCard(
-                      title: 'BATTERY & STORAGE',
+                      title: 'BATTERY & THERMAL',
                       value: '${m.batteryLevel}%',
                       subvalue: m.isCharging
-                          ? 'Charging ⚡ • ${m.storageFreeGb.toStringAsFixed(0)}GB Free'
-                          : 'Normal • ${m.storageFreeGb.toStringAsFixed(0)}GB Free',
+                          ? 'Charging ⚡ • ${m.thermalState}'
+                          : '${m.thermalState} • ${m.storageFreeGb.toStringAsFixed(0)}GB Free',
                       accentColor: const Color(0xFFFFD60A),
                       icon: m.isCharging
                           ? Icons.battery_charging_full
