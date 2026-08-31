@@ -638,7 +638,9 @@ class _HudLiveScreenState extends State<HudLiveScreen>
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header: Wi-Fi & System Cockpit
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -651,93 +653,195 @@ class _HudLiveScreenState extends State<HudLiveScreen>
                   letterSpacing: 1.5,
                 ),
               ),
-              Text(
-                '${m.currentFps} FPS • 60Hz',
-                style: const TextStyle(
-                  color: Color(0xFF30D158),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
+              Row(
+                children: [
+                  Icon(
+                    m.isOffline ? Icons.airplanemode_active : Icons.wifi,
+                    color: m.isOffline
+                        ? const Color(0xFF8E8E93)
+                        : const Color(0xFF0A84FF),
+                    size: 14,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    m.isOffline ? 'OFFLINE' : 'WI-FI ACTIVE',
+                    style: TextStyle(
+                      color: m.isOffline
+                          ? const Color(0xFF8E8E93)
+                          : const Color(0xFF0A84FF),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const Spacer(),
-          SizedBox(
-            width: 140,
-            height: 140,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedBuilder(
-                  animation: _animController,
-                  builder: (context, _) => CustomPaint(
-                    size: const Size(140, 140),
-                    painter: _buildPainter(m),
+          const SizedBox(height: 12),
+          const Divider(color: Color(0xFF2C2C2E), height: 1),
+          const SizedBox(height: 14),
+
+          // Mid 1: CPU & RAM Key Metrics
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${m.cpuUsage.toInt()}%',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
                   ),
+                  const Text(
+                    'Processor Load',
+                    style: TextStyle(
+                      color: Color(0xFF8E8E93),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${m.ramUsedGb.toStringAsFixed(1)} GB',
+                    style: const TextStyle(
+                      color: Color(0xFF30D158),
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Text(
+                    '${m.ramUsagePercent.toInt()}% Memory In Use',
+                    style: const TextStyle(
+                      color: Color(0xFF8E8E93),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Mid 2: Dedicated Network & Speed Card
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E22),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  m.isOffline ? Icons.airplanemode_active : Icons.network_check,
+                  color: m.isOffline
+                      ? const Color(0xFF8E8E93)
+                      : const Color(0xFF0A84FF),
+                  size: 20,
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${m.cpuUsage.toInt()}%',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        m.isOffline
+                            ? 'No Internet Connection'
+                            : '${m.connectionType} • ${m.downloadSpeedMbps.toStringAsFixed(1)} MB/s',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${m.cpuFrequencyGhz.toStringAsFixed(2)} GHz',
-                      style: const TextStyle(
-                        color: Color(0xFF8E8E93),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                      Text(
+                        m.isOffline
+                            ? 'Airplane mode enabled'
+                            : 'Real-time throughput • ${m.pingMs}ms ping',
+                        style: const TextStyle(
+                          color: Color(0xFF8E8E93),
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           const Spacer(),
+
+          // Bottom 2x2 Telemetry Chips
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMiniMetric('RAM', '${m.ramUsagePercent.toInt()}%',
-                  const Color(0xFF30D158)),
-              _buildMiniMetric(
-                  'NETWORK',
-                  m.isOffline ? 'Offline' : '${m.downloadSpeedMbps.toInt()}M',
-                  const Color(0xFF0A84FF)),
-              _buildMiniMetric(
-                  'BATTERY', '${m.batteryLevel}%', const Color(0xFFFFD60A)),
-              _buildMiniMetric('STORAGE', '${m.storageFreeGb.toInt()}GB',
-                  const Color(0xFFFF9F0A)),
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E22),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        m.isCharging
+                            ? Icons.battery_charging_full
+                            : Icons.battery_full,
+                        color: const Color(0xFFFFD60A),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${m.batteryLevel}% ${m.isCharging ? "⚡" : ""}',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E22),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.storage_outlined,
+                          color: Color(0xFFFF9F0A), size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${m.storageFreeGb.toStringAsFixed(0)}GB Free',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMiniMetric(String label, String val, Color col) {
-    return Column(
-      children: [
-        Text(
-          val,
-          style:
-              TextStyle(color: col, fontSize: 14, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(
-              color: Color(0xFF8E8E93),
-              fontSize: 9,
-              fontWeight: FontWeight.w700),
-        ),
-      ],
     );
   }
 

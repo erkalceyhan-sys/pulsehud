@@ -3,7 +3,7 @@ require "base64"
 default_platform(:ios)
 
 platform :ios do
-  desc "Build Flutter iOS release and deploy to TestFlight"
+  desc "Build Flutter iOS release and deploy to TestFlight with Widget Extension"
   lane :beta do
     setup_ci
 
@@ -23,9 +23,23 @@ platform :ios do
     token = ENV.fetch("MATCH_GIT_TOKEN")
     git_authorization = Base64.strict_encode64("x-access-token:#{token}")
 
+    # Match for Main App
     match(
       type: "appstore",
       app_identifier: "com.erkalceyhan.pulsehud",
+      team_id: "BMTB5FH8US",
+      api_key: api_key,
+      git_url: "https://github.com/erkalceyhan-sys/erkalceyhan-signing.git",
+      git_branch: "main",
+      git_basic_authorization: git_authorization,
+      readonly: false,
+      generate_apple_certs: true
+    )
+
+    # Match for Widget Extension
+    match(
+      type: "appstore",
+      app_identifier: "com.erkalceyhan.pulsehud.widget",
       team_id: "BMTB5FH8US",
       api_key: api_key,
       git_url: "https://github.com/erkalceyhan-sys/erkalceyhan-signing.git",
@@ -45,7 +59,8 @@ platform :ios do
     sh("flutter config --no-enable-swift-package-manager")
     sh("flutter build ios --release --no-codesign --build-number=#{build_num}", chdir: "..")
 
-    profile_name = ENV['sigh_com.erkalceyhan.pulsehud_appstore_profile-name'] || "match AppStore com.erkalceyhan.pulsehud"
+    main_profile = ENV['sigh_com.erkalceyhan.pulsehud_appstore_profile-name'] || "match AppStore com.erkalceyhan.pulsehud"
+    widget_profile = ENV['sigh_com.erkalceyhan.pulsehud.widget_appstore_profile-name'] || "match AppStore com.erkalceyhan.pulsehud.widget"
 
     update_code_signing_settings(
       use_automatic_signing: false,
@@ -55,7 +70,19 @@ platform :ios do
       team_id: "BMTB5FH8US",
       bundle_identifier: "com.erkalceyhan.pulsehud",
       code_sign_identity: "Apple Distribution",
-      profile_name: profile_name,
+      profile_name: main_profile,
+      sdk: "iphoneos*"
+    )
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Runner.xcodeproj",
+      targets: ["PulseHudWidgetExtension"],
+      build_configurations: ["Release"],
+      team_id: "BMTB5FH8US",
+      bundle_identifier: "com.erkalceyhan.pulsehud.widget",
+      code_sign_identity: "Apple Distribution",
+      profile_name: widget_profile,
       sdk: "iphoneos*"
     )
 
@@ -68,7 +95,8 @@ platform :ios do
         teamID: "BMTB5FH8US",
         signingStyle: "manual",
         provisioningProfiles: {
-          "com.erkalceyhan.pulsehud" => profile_name
+          "com.erkalceyhan.pulsehud" => main_profile,
+          "com.erkalceyhan.pulsehud.widget" => widget_profile
         }
       }
     )
