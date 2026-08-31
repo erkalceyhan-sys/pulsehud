@@ -4,7 +4,10 @@ class AdService extends ChangeNotifier {
   bool _isProUser = false;
   bool get isProUser => _isProUser;
 
-  final Set<String> _unlockedThemeIds = {'cyberpunk_neon', 'obsidian_minimalist'};
+  final Set<String> _unlockedThemeIds = {
+    'cyberpunk_neon',
+    'obsidian_minimalist'
+  };
   Set<String> get unlockedThemeIds => _unlockedThemeIds;
 
   bool isThemeUnlocked(String themeId) {

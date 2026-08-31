@@ -12,7 +12,8 @@ class ThemePickerScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('HUD THEMES', style: TextStyle(letterSpacing: 2.0, fontSize: 16)),
+        title: const Text('HUD THEMES',
+            style: TextStyle(letterSpacing: 2.0, fontSize: 16)),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -26,7 +27,9 @@ class ThemePickerScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF121B2F),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.primaryAccent.withValues(alpha: 0.5), width: 1.5),
+              border: Border.all(
+                  color: theme.primaryAccent.withValues(alpha: 0.5),
+                  width: 1.5),
             ),
             child: ListTile(
               contentPadding: const EdgeInsets.all(16),
@@ -42,7 +45,8 @@ class ThemePickerScreen extends StatelessWidget {
               ),
               title: Text(
                 theme.title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               subtitle: Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -58,7 +62,8 @@ class ThemePickerScreen extends StatelessWidget {
                         foregroundColor: Colors.black,
                       ),
                       onPressed: () => Navigator.pop(context, theme),
-                      child: const Text('SELECT', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('SELECT',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                     )
                   : OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
@@ -71,7 +76,8 @@ class ThemePickerScreen extends StatelessWidget {
                         adService.unlockThemeWithReward(theme.id);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('${theme.title} unlocked for 24 hours!'),
+                            content:
+                                Text('${theme.title} unlocked for 24 hours!'),
                             backgroundColor: const Color(0xFF101B2B),
                           ),
                         );

@@ -7,7 +7,7 @@ class AppTheme {
   static const Color neonGreen = Color(0xFF00FF9D);
   static const Color neonMagenta = Color(0xFFFF007A);
   static const Color neonYellow = Color(0xFFFFE600);
-  
+
   static ThemeData dark() {
     return ThemeData(
       brightness: Brightness.dark,

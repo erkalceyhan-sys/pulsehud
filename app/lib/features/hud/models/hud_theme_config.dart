@@ -42,7 +42,8 @@ class HudThemeConfig {
     HudThemeConfig(
       id: 'obsidian_minimalist',
       title: 'Obsidian Minimalist',
-      description: 'Pure Apple-grade OLED black with subtle high-contrast gauges.',
+      description:
+          'Pure Apple-grade OLED black with subtle high-contrast gauges.',
       type: HudThemeType.obsidianMinimalist,
       isPremium: false,
       primaryAccent: Color(0xFFFFFFFF),
@@ -52,7 +53,8 @@ class HudThemeConfig {
     HudThemeConfig(
       id: 'matrix_terminal',
       title: 'Matrix Terminal',
-      description: 'Cascading digital rain with raw real-time Linux kernel telemetry.',
+      description:
+          'Cascading digital rain with raw real-time Linux kernel telemetry.',
       type: HudThemeType.matrixTerminal,
       isPremium: true,
       primaryAccent: Color(0xFF00FF66),
@@ -62,7 +64,8 @@ class HudThemeConfig {
     HudThemeConfig(
       id: 'scifi_reactor',
       title: 'Arc Reactor Sci-Fi',
-      description: 'Central rotating energy core reacting dynamically to CPU load.',
+      description:
+          'Central rotating energy core reacting dynamically to CPU load.',
       type: HudThemeType.sciFiReactor,
       isPremium: true,
       primaryAccent: Color(0xFF00E5FF),

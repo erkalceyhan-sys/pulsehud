@@ -30,8 +30,10 @@ class ReactorPainter extends CustomPainter {
       double innerR = 40.0;
       double outerR = 85.0;
       canvas.drawLine(
-        Offset(center.dx + cos(angle) * innerR, center.dy + sin(angle) * innerR),
-        Offset(center.dx + cos(angle) * outerR, center.dy + sin(angle) * outerR),
+        Offset(
+            center.dx + cos(angle) * innerR, center.dy + sin(angle) * innerR),
+        Offset(
+            center.dx + cos(angle) * outerR, center.dy + sin(angle) * outerR),
         bladePaint,
       );
     }

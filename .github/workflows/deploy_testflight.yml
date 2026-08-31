@@ -28,6 +28,10 @@ jobs:
           flutter-version: '3.44.8'
           channel: 'stable'
 
+      - name: Disable Swift Package Manager (Use CocoaPods for AdMob compatibility)
+        run: |
+          flutter config --no-enable-swift-package-manager
+
       - name: Install Dependencies
         run: |
           cd app

@@ -10,17 +10,12 @@ class MatrixPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-     // final greenPaint = Paint()
-      ..color = const Color(0xFF00FF66)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
     // Digital rain simulation columns
     final rand = Random(42);
     for (double x = 10; x < size.width; x += 24) {
       double speed = rand.nextDouble() * 200 + 150;
       double offset = (animationValue * speed) % size.height;
-      
+
       canvas.drawLine(
         Offset(x, offset),
         Offset(x, (offset + 60).clamp(0.0, size.height)),
@@ -48,8 +43,10 @@ class MatrixPainter extends CustomPainter {
     canvas.drawLine(const Offset(30, 80), const Offset(30, 130), bracketPaint);
 
     // Bottom-right
-    canvas.drawLine(Offset(size.width - 30, size.height - 80), Offset(size.width - 80, size.height - 80), bracketPaint);
-    canvas.drawLine(Offset(size.width - 30, size.height - 80), Offset(size.width - 30, size.height - 130), bracketPaint);
+    canvas.drawLine(Offset(size.width - 30, size.height - 80),
+        Offset(size.width - 80, size.height - 80), bracketPaint);
+    canvas.drawLine(Offset(size.width - 30, size.height - 80),
+        Offset(size.width - 30, size.height - 130), bracketPaint);
   }
 
   @override

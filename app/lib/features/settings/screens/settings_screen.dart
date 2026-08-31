@@ -12,7 +12,8 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SETTINGS & PRO', style: TextStyle(letterSpacing: 2.0, fontSize: 16)),
+        title: const Text('SETTINGS & PRO',
+            style: TextStyle(letterSpacing: 2.0, fontSize: 16)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -33,18 +34,24 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.workspace_premium, color: Colors.white, size: 28),
+                    Icon(Icons.workspace_premium,
+                        color: Colors.white, size: 28),
                     SizedBox(width: 8),
                     Text(
                       'PULSEHUD PRO',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Unlock all futuristic HUD themes forever, 120 FPS ultra-smooth renderer, and zero ads.',
-                  style: TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
+                  style:
+                      TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -54,7 +61,8 @@ class SettingsScreen extends StatelessWidget {
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () {
                       adService.upgradeToPro();
@@ -66,8 +74,11 @@ class SettingsScreen extends StatelessWidget {
                       );
                     },
                     child: Text(
-                      adService.isProUser ? 'PRO ACTIVATED' : 'GET PRO - \$4.99 (ONE TIME)',
-                      style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                      adService.isProUser
+                          ? 'PRO ACTIVATED'
+                          : 'GET PRO - \$4.99 (ONE TIME)',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, letterSpacing: 1.2),
                     ),
                   ),
                 ),
@@ -77,21 +88,23 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // About Section
-          const Text('SYSTEM & LEGAL', style: TextStyle(color: Colors.white54, fontSize: 11, letterSpacing: 1.5)),
+          const Text('SYSTEM & LEGAL',
+              style: TextStyle(
+                  color: Colors.white54, fontSize: 11, letterSpacing: 1.5)),
           const SizedBox(height: 8),
-          ListTile(
-            title: const Text('Version'),
-            trailing: const Text('${AppConstants.appVersion} (${AppConstants.buildNumber})', style: TextStyle(color: Colors.white54)),
+          const ListTile(
+            title: Text('Version'),
+            trailing: Text(
+                '${AppConstants.appVersion} (${AppConstants.buildNumber})',
+                style: TextStyle(color: Colors.white54)),
           ),
-          ListTile(
-            title: const Text('Privacy Policy'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-            onTap: () {},
+          const ListTile(
+            title: Text('Privacy Policy'),
+            trailing: Icon(Icons.arrow_forward_ios, size: 14),
           ),
-          ListTile(
-            title: const Text('Terms of Service'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-            onTap: () {},
+          const ListTile(
+            title: Text('Terms of Service'),
+            trailing: Icon(Icons.arrow_forward_ios, size: 14),
           ),
         ],
       ),

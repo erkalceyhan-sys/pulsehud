@@ -19,7 +19,7 @@ class ObsidianPainter extends CustomPainter {
       ..strokeWidth = 14.0;
 
     // Ring 1: CPU
-    final r1 = 120.0;
+    const r1 = 120.0;
     canvas.drawCircle(center, r1, trackPaint);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: r1),
@@ -34,7 +34,7 @@ class ObsidianPainter extends CustomPainter {
     );
 
     // Ring 2: RAM
-    final r2 = 96.0;
+    const r2 = 96.0;
     canvas.drawCircle(center, r2, trackPaint);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: r2),
@@ -49,7 +49,7 @@ class ObsidianPainter extends CustomPainter {
     );
 
     // Ring 3: Network
-    final r3 = 72.0;
+    const r3 = 72.0;
     canvas.drawCircle(center, r3, trackPaint);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: r3),

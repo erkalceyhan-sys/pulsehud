@@ -39,18 +39,24 @@ class CyberpunkPainter extends CustomPainter {
 
     // Rotating Arcs
     final arcRect = Rect.fromCircle(center: center, radius: 130);
-    canvas.drawArc(arcRect, animationValue * 2 * pi, pi / 2, false, cyanPaint..strokeWidth = 4.0);
-    canvas.drawArc(arcRect, -animationValue * 2 * pi + pi, pi / 3, false, magentaPaint..strokeWidth = 4.0);
+    canvas.drawArc(arcRect, animationValue * 2 * pi, pi / 2, false,
+        cyanPaint..strokeWidth = 4.0);
+    canvas.drawArc(arcRect, -animationValue * 2 * pi + pi, pi / 3, false,
+        magentaPaint..strokeWidth = 4.0);
 
     // Central CPU Load Arc
     final cpuAngle = (metrics.cpuUsage / 100.0) * 2 * pi;
     final cpuRect = Rect.fromCircle(center: center, radius: 90);
-    canvas.drawArc(cpuRect, -pi / 2, cpuAngle, false, Paint()
-      ..color = const Color(0xFF00FF9D)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 8.0
-      ..strokeCap = StrokeCap.round
-    );
+    canvas.drawArc(
+        cpuRect,
+        -pi / 2,
+        cpuAngle,
+        false,
+        Paint()
+          ..color = const Color(0xFF00FF9D)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 8.0
+          ..strokeCap = StrokeCap.round);
 
     // Dynamic Waveform across center
     final wavePaint = Paint()
@@ -61,7 +67,9 @@ class CyberpunkPainter extends CustomPainter {
     final path = Path();
     for (double x = 20; x < size.width - 20; x += 5) {
       double relX = (x - size.width / 2) / 60;
-      double y = center.dy + 180 + sin(relX * 4 + animationValue * 2 * pi) * (metrics.cpuUsage * 0.3);
+      double y = center.dy +
+          180 +
+          sin(relX * 4 + animationValue * 2 * pi) * (metrics.cpuUsage * 0.3);
       if (x == 20) {
         path.moveTo(x, y);
       } else {

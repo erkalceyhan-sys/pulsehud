@@ -30,12 +30,20 @@ class SystemMonitorService extends ChangeNotifier {
   void _startMonitoring() {
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
       // Realistic live fluctuation
-      double newCpu = (_metrics.cpuUsage + (_rnd.nextDouble() * 14.0 - 7.0)).clamp(8.0, 96.0);
-      double newRam = (_metrics.ramUsedGb + (_rnd.nextDouble() * 0.2 - 0.1)).clamp(2.5, 7.6);
-      double newDl = (_metrics.downloadSpeedMbps + (_rnd.nextDouble() * 20.0 - 10.0)).clamp(5.0, 240.0);
-      double newUl = (_metrics.uploadSpeedMbps + (_rnd.nextDouble() * 6.0 - 3.0)).clamp(2.0, 80.0);
+      double newCpu = (_metrics.cpuUsage + (_rnd.nextDouble() * 14.0 - 7.0))
+          .clamp(8.0, 96.0);
+      double newRam = (_metrics.ramUsedGb + (_rnd.nextDouble() * 0.2 - 0.1))
+          .clamp(2.5, 7.6);
+      double newDl =
+          (_metrics.downloadSpeedMbps + (_rnd.nextDouble() * 20.0 - 10.0))
+              .clamp(5.0, 240.0);
+      double newUl =
+          (_metrics.uploadSpeedMbps + (_rnd.nextDouble() * 6.0 - 3.0))
+              .clamp(2.0, 80.0);
       int newPing = (_metrics.pingMs + (_rnd.nextInt(5) - 2)).clamp(9, 45);
-      double newTemp = (_metrics.batteryTemperatureC + (_rnd.nextDouble() * 0.2 - 0.1)).clamp(28.0, 42.0);
+      double newTemp =
+          (_metrics.batteryTemperatureC + (_rnd.nextDouble() * 0.2 - 0.1))
+              .clamp(28.0, 42.0);
 
       _metrics = HudMetrics(
         cpuUsage: double.parse(newCpu.toStringAsFixed(1)),

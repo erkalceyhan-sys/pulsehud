@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/system_monitor_service.dart';
 import '../../../core/services/wallpaper_service.dart';
+import '../models/hud_metrics.dart';
 import '../models/hud_theme_config.dart';
 import '../painters/obsidian_painter.dart';
+import '../painters/cyberpunk_painter.dart';
+import '../painters/matrix_painter.dart';
+import '../painters/reactor_painter.dart';
 import '../../themes/screens/theme_picker_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 
@@ -14,9 +18,10 @@ class HudLiveScreen extends StatefulWidget {
   State<HudLiveScreen> createState() => _HudLiveScreenState();
 }
 
-class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProviderStateMixin {
+class _HudLiveScreenState extends State<HudLiveScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animController;
-  HudThemeConfig _currentTheme = HudThemeConfig.availableThemes[1]; // Default: Apple Obsidian Minimalist
+  HudThemeConfig _currentTheme = HudThemeConfig.availableThemes[1];
 
   @override
   void initState() {
@@ -31,6 +36,20 @@ class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProvider
   void dispose() {
     _animController.dispose();
     super.dispose();
+  }
+
+  CustomPainter _buildPainter(HudMetrics m) {
+    switch (_currentTheme.id) {
+      case 'cyberpunk_neon':
+        return CyberpunkPainter(metrics: m, animationValue: _animController.value);
+      case 'matrix_digital_rain':
+        return MatrixPainter(metrics: m, animationValue: _animController.value);
+      case 'reactor_core':
+        return ReactorPainter(metrics: m, animationValue: _animController.value);
+      case 'obsidian_minimalist':
+      default:
+        return ObsidianPainter(metrics: m, animationValue: _animController.value);
+    }
   }
 
   @override
@@ -77,11 +96,13 @@ class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProvider
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.palette_outlined, color: Colors.white70),
+                        icon: const Icon(Icons.palette_outlined,
+                            color: Colors.white70),
                         onPressed: () async {
                           final selected = await Navigator.push<HudThemeConfig>(
                             context,
-                            MaterialPageRoute(builder: (_) => const ThemePickerScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const ThemePickerScreen()),
                           );
                           if (selected != null) {
                             setState(() => _currentTheme = selected);
@@ -89,11 +110,13 @@ class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProvider
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.settings_outlined, color: Colors.white70),
+                        icon: const Icon(Icons.settings_outlined,
+                            color: Colors.white70),
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const SettingsScreen()),
                           );
                         },
                       ),
@@ -116,10 +139,7 @@ class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProvider
                         builder: (context, _) {
                           return CustomPaint(
                             size: const Size(240, 240),
-                            painter: ObsidianPainter(
-                              metrics: m,
-                              animationValue: _animController.value,
-                            ),
+                            painter: _buildPainter(m),
                           );
                         },
                       ),
@@ -221,9 +241,10 @@ class _HudLiveScreenState extends State<HudLiveScreen> with SingleTickerProvider
                     elevation: 0,
                   ),
                   onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
                     final success = await WallpaperService.setLiveWallpaper();
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text(
                           success

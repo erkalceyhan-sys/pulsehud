@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class WallpaperService {
-  static const MethodChannel _channel = MethodChannel('com.pulsehud.app/wallpaper');
+  static const MethodChannel _channel =
+      MethodChannel('com.pulsehud.app/wallpaper');
 
   static Future<bool> setLiveWallpaper() async {
     try {
