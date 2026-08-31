@@ -28,7 +28,7 @@ platform :ios do
       app_identifier: "com.erkalceyhan.pulsehud",
       team_id: "BMTB5FH8US",
       api_key: api_key,
-      git_url: "https://github.com/erkalceyhan-sys/braviqo-signing.git",
+      git_url: "https://github.com/erkalceyhan-sys/erkalceyhan-signing.git",
       git_branch: "main",
       git_basic_authorization: git_authorization,
       readonly: false,
