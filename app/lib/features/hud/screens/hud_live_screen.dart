@@ -41,14 +41,17 @@ class _HudLiveScreenState extends State<HudLiveScreen>
   CustomPainter _buildPainter(HudMetrics m) {
     switch (_currentTheme.id) {
       case 'cyberpunk_neon':
-        return CyberpunkPainter(metrics: m, animationValue: _animController.value);
+        return CyberpunkPainter(
+            metrics: m, animationValue: _animController.value);
       case 'matrix_digital_rain':
         return MatrixPainter(metrics: m, animationValue: _animController.value);
       case 'reactor_core':
-        return ReactorPainter(metrics: m, animationValue: _animController.value);
+        return ReactorPainter(
+            metrics: m, animationValue: _animController.value);
       case 'obsidian_minimalist':
       default:
-        return ObsidianPainter(metrics: m, animationValue: _animController.value);
+        return ObsidianPainter(
+            metrics: m, animationValue: _animController.value);
     }
   }
 
