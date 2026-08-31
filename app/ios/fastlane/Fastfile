@@ -42,6 +42,7 @@ platform :ios do
 
     build_num = ENV['GITHUB_RUN_NUMBER'] || '1'
 
+    sh("flutter config --no-enable-swift-package-manager")
     sh("flutter build ios --release --no-codesign --build-number=#{build_num}", chdir: "..")
 
     update_code_signing_settings(
