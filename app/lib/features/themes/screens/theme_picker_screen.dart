@@ -26,7 +26,7 @@ class ThemePickerScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF121B2F),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.primaryAccent.withOpacity(0.5), width: 1.5),
+              border: Border.all(color: theme.primaryAccent.withValues(alpha: 0.5), width: 1.5),
             ),
             child: ListTile(
               contentPadding: const EdgeInsets.all(16),

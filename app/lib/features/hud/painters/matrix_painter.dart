@@ -10,7 +10,7 @@ class MatrixPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final greenPaint = Paint()
+     // final greenPaint = Paint()
       ..color = const Color(0xFF00FF66)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
@@ -29,8 +29,8 @@ class MatrixPainter extends CustomPainter {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF00FF66).withOpacity(0.0),
-              const Color(0xFF00FF66).withOpacity(0.7),
+              const Color(0xFF00FF66).withValues(alpha: 0.0),
+              const Color(0xFF00FF66).withValues(alpha: 0.7),
             ],
           ).createShader(Rect.fromLTWH(x, offset, 2, 60))
           ..strokeWidth = 2.0,

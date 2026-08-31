@@ -23,7 +23,7 @@ class CyberpunkPainter extends CustomPainter {
 
     // Grid Background
     final gridPaint = Paint()
-      ..color = const Color(0xFF142442).withOpacity(0.3)
+      ..color = const Color(0xFF142442).withValues(alpha: 0.3)
       ..strokeWidth = 1.0;
 
     for (double x = 0; x < size.width; x += 40) {

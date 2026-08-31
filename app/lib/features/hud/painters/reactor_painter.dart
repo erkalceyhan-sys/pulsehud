@@ -14,7 +14,7 @@ class ReactorPainter extends CustomPainter {
 
     // Glowing Core Reactor
     final corePaint = Paint()
-      ..color = const Color(0xFF00E5FF).withOpacity(0.15)
+      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 90, corePaint);
 

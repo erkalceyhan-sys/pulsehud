@@ -1,0 +1,78 @@
+require "base64"
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build Flutter iOS release and deploy to TestFlight"
+  lane :beta do
+    setup_ci
+
+    key_path = File.expand_path("AuthKey_NN3GKQ7M36.p8", __dir__)
+    unless File.exist?(key_path)
+      key_path = File.expand_path("fastlane/AuthKey_NN3GKQ7M36.p8")
+    end
+
+    p8_content = File.read(key_path)
+
+    api_key = app_store_connect_api_key(
+      key_id: "NN3GKQ7M36",
+      issuer_id: "0533017c-c26d-46ea-a9a9-051e87cf73e6",
+      key_content: p8_content
+    )
+
+    token = ENV.fetch("MATCH_GIT_TOKEN")
+    git_authorization = Base64.strict_encode64("x-access-token:#{token}")
+
+    match(
+      type: "appstore",
+      app_identifier: "com.erkalceyhan.pulsehud",
+      team_id: "BMTB5FH8US",
+      api_key: api_key,
+      git_url: "https://github.com/erkalceyhan-sys/braviqo-signing.git",
+      git_branch: "main",
+      git_basic_authorization: git_authorization,
+      readonly: false,
+      generate_apple_certs: true
+    )
+
+    identities_output = sh("security find-identity -v -p codesigning")
+    if identities_output.include?("0 valid identities found")
+      UI.user_error!("No valid Apple Distribution code signing identity found in keychain after Match sync!")
+    end
+
+    build_num = ENV['GITHUB_RUN_NUMBER'] || '1'
+
+    sh("flutter build ios --release --no-codesign --build-number=#{build_num}", chdir: "..")
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Runner.xcodeproj",
+      targets: ["Runner"],
+      build_configurations: ["Release"],
+      team_id: "BMTB5FH8US",
+      bundle_identifier: "com.erkalceyhan.pulsehud",
+      code_sign_identity: "Apple Distribution",
+      profile_name: "match AppStore com.erkalceyhan.pulsehud",
+      sdk: "iphoneos*"
+    )
+
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      export_options: {
+        method: "app-store",
+        teamID: "BMTB5FH8US",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.erkalceyhan.pulsehud" => "match AppStore com.erkalceyhan.pulsehud"
+        }
+      }
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
