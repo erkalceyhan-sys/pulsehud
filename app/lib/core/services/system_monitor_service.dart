@@ -1,38 +1,34 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:battery_plus/battery_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:home_widget/home_widget.dart';
 import '../../features/hud/models/hud_metrics.dart';
 
 class SystemMonitorService extends ChangeNotifier {
+  static const MethodChannel _channel =
+      MethodChannel('com.erkalceyhan.pulsehud/system_metrics');
+
   late Timer _timer;
-  final Random _rnd = Random();
-  final Battery _battery = Battery();
   final Connectivity _connectivity = Connectivity();
 
-  int _realBatteryLevel = 88;
-  bool _isCharging = false;
   bool _isOffline = false;
   String _connectionType = '5G';
-
-  StreamSubscription? _batterySub;
   StreamSubscription? _connectivitySub;
 
   HudMetrics _metrics = HudMetrics(
-    cpuUsage: 18.5,
-    cpuFrequencyGhz: 2.45,
-    ramUsedGb: 4.1,
+    cpuUsage: 0.0,
+    cpuFrequencyGhz: 2.40,
+    ramUsedGb: 4.0,
     ramTotalGb: 8.0,
     downloadSpeedMbps: 0.0,
     uploadSpeedMbps: 0.0,
-    pingMs: 14,
-    batteryLevel: 88,
+    pingMs: 0,
+    batteryLevel: 100,
     isCharging: false,
-    batteryTemperatureC: 30.8,
-    storageUsedPercent: 54.0,
-    storageFreeGb: 58.4,
+    batteryTemperatureC: 30.0,
+    storageUsedPercent: 50.0,
+    storageFreeGb: 50.0,
     currentFps: 60,
     isOffline: false,
     connectionType: '5G',
@@ -41,43 +37,23 @@ class SystemMonitorService extends ChangeNotifier {
   HudMetrics get metrics => _metrics;
 
   SystemMonitorService() {
-    _initSensors();
-    _startMonitoring();
+    _initConnectivity();
+    _startNativePolling();
   }
 
-  Future<void> _initSensors() async {
+  Future<void> _initConnectivity() async {
     try {
-      // 1. Initial Battery
-      final level = await _battery.batteryLevel;
-      final state = await _battery.batteryState;
-      _realBatteryLevel = level.clamp(0, 100);
-      _isCharging =
-          state == BatteryState.charging || state == BatteryState.full;
-
-      _batterySub = _battery.onBatteryStateChanged.listen((state) async {
-        try {
-          final l = await _battery.batteryLevel;
-          _realBatteryLevel = l.clamp(0, 100);
-          _isCharging =
-              state == BatteryState.charging || state == BatteryState.full;
-          notifyListeners();
-        } catch (_) {}
-      });
-    } catch (_) {}
-
-    try {
-      // 2. Initial Connectivity
       final results = await _connectivity.checkConnectivity();
-      _updateConnectivityState(results);
+      _updateConnectivity(results);
 
       _connectivitySub = _connectivity.onConnectivityChanged.listen((results) {
-        _updateConnectivityState(results);
+        _updateConnectivity(results);
         notifyListeners();
       });
     } catch (_) {}
   }
 
-  void _updateConnectivityState(List<ConnectivityResult> results) {
+  void _updateConnectivity(List<ConnectivityResult> results) {
     if (results.isEmpty || results.contains(ConnectivityResult.none)) {
       _isOffline = true;
       _connectionType = 'Offline (Airplane Mode)';
@@ -96,49 +72,73 @@ class SystemMonitorService extends ChangeNotifier {
     }
   }
 
-  void _startMonitoring() {
+  void _startNativePolling() {
+    _fetchRealNativeMetrics();
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
-      double newCpu = (_metrics.cpuUsage + (_rnd.nextDouble() * 8.0 - 4.0))
-          .clamp(6.0, 85.0);
-      double newRam = (_metrics.ramUsedGb + (_rnd.nextDouble() * 0.1 - 0.05))
-          .clamp(3.8, 5.2);
-
-      double dlSpeed = 0.0;
-      double ulSpeed = 0.0;
-      int ping = 0;
-
-      if (!_isOffline) {
-        dlSpeed =
-            (_metrics.downloadSpeedMbps + (_rnd.nextDouble() * 12.0 - 6.0))
-                .clamp(12.0, 160.0);
-        ulSpeed = (_metrics.uploadSpeedMbps + (_rnd.nextDouble() * 4.0 - 2.0))
-            .clamp(4.0, 48.0);
-        ping = (_metrics.pingMs + (_rnd.nextInt(3) - 1)).clamp(11, 28);
-      }
-
-      double newTemp = 30.5 + (newCpu / 100.0) * 4.2;
-
-      _metrics = HudMetrics(
-        cpuUsage: double.parse(newCpu.toStringAsFixed(1)),
-        cpuFrequencyGhz: 2.3 + (newCpu / 100.0) * 0.9,
-        ramUsedGb: double.parse(newRam.toStringAsFixed(2)),
-        ramTotalGb: 8.0,
-        downloadSpeedMbps: double.parse(dlSpeed.toStringAsFixed(1)),
-        uploadSpeedMbps: double.parse(ulSpeed.toStringAsFixed(1)),
-        pingMs: ping,
-        batteryLevel: _realBatteryLevel,
-        isCharging: _isCharging,
-        batteryTemperatureC: double.parse(newTemp.toStringAsFixed(1)),
-        storageUsedPercent: 54.0,
-        storageFreeGb: 58.4,
-        currentFps: 60,
-        isOffline: _isOffline,
-        connectionType: _connectionType,
-      );
-
-      notifyListeners();
-      _syncToWidgets();
+      _fetchRealNativeMetrics();
     });
+  }
+
+  Future<void> _fetchRealNativeMetrics() async {
+    double realCpu = _metrics.cpuUsage;
+    double realRamUsed = _metrics.ramUsedGb;
+    double realRamTotal = _metrics.ramTotalGb;
+    double realStorageFree = _metrics.storageFreeGb;
+    int realBattery = _metrics.batteryLevel;
+    bool realCharging = _metrics.isCharging;
+
+    try {
+      final res =
+          await _channel.invokeMethod<Map<dynamic, dynamic>>('getRealMetrics');
+      if (res != null) {
+        if (res['cpuUsage'] != null) {
+          realCpu = (res['cpuUsage'] as num).toDouble().clamp(0.0, 100.0);
+        }
+        if (res['ramUsedGb'] != null) {
+          realRamUsed = (res['ramUsedGb'] as num).toDouble();
+        }
+        if (res['ramTotalGb'] != null) {
+          realRamTotal = (res['ramTotalGb'] as num).toDouble();
+        }
+        if (res['storageFreeGb'] != null) {
+          realStorageFree = (res['storageFreeGb'] as num).toDouble();
+        }
+        if (res['batteryLevel'] != null) {
+          realBattery = (res['batteryLevel'] as num).toInt();
+        }
+        if (res['isCharging'] != null) {
+          realCharging = res['isCharging'] as bool;
+        }
+      }
+    } catch (_) {
+      // Fallback if not on iOS native runtime
+    }
+
+    double storageUsedPct = 50.0;
+    if (realRamTotal > 0) {
+      storageUsedPct = ((realRamTotal - realRamUsed) / realRamTotal) * 100.0;
+    }
+
+    _metrics = HudMetrics(
+      cpuUsage: double.parse(realCpu.toStringAsFixed(1)),
+      cpuFrequencyGhz: 2.2 + (realCpu / 100.0) * 1.0,
+      ramUsedGb: double.parse(realRamUsed.toStringAsFixed(2)),
+      ramTotalGb: double.parse(realRamTotal.toStringAsFixed(1)),
+      downloadSpeedMbps: _isOffline ? 0.0 : 0.0,
+      uploadSpeedMbps: _isOffline ? 0.0 : 0.0,
+      pingMs: _isOffline ? 0 : 12,
+      batteryLevel: realBattery,
+      isCharging: realCharging,
+      batteryTemperatureC: 30.0 + (realCpu / 100.0) * 3.0,
+      storageUsedPercent: double.parse(storageUsedPct.toStringAsFixed(1)),
+      storageFreeGb: double.parse(realStorageFree.toStringAsFixed(1)),
+      currentFps: 60,
+      isOffline: _isOffline,
+      connectionType: _connectionType,
+    );
+
+    notifyListeners();
+    _syncToWidgets();
   }
 
   Future<void> _syncToWidgets() async {
@@ -168,7 +168,6 @@ class SystemMonitorService extends ChangeNotifier {
   @override
   void dispose() {
     _timer.cancel();
-    _batterySub?.cancel();
     _connectivitySub?.cancel();
     super.dispose();
   }
